@@ -5,14 +5,14 @@ import os
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="InboxIQ", page_icon="📬")
 
-st.markdown(\"\"\"
+st.markdown("""
 <div style='background-color:#F6F8FA; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
     <h1 style='color: #1F77B4;'>📬 InboxIQ</h1>
     <p style='color: #555; font-size: 16px;'>
         Track tailored resumes, summarize JDs, and write recruiter emails – all with AI.
     </p>
 </div>
-\"\"\", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # ---------------- INIT ----------------
 os.makedirs("outputs", exist_ok=True)
