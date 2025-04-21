@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import os
@@ -51,7 +52,7 @@ if submit_button:
         with open(jd_save_path, "w") as f:
             f.write(jd_text)
 
-        summary = f\"\"\"
+        summary = f"""
 ### 📝 JD Summary
 
 **1. Key Responsibilities**:
@@ -69,9 +70,9 @@ if submit_button:
 
 **4. Domain / Team**:
 - Gemini AI Assistant | Google Workspace
-\"\"\"
+"""
 
-        email = f\"\"\"
+        email = f"""
 Hi [Recruiter],
 
 I’m applying for the **{job_title}** role at **{company_name}**, and I believe it’s an incredible match with my background in AI-powered product design.
@@ -82,7 +83,7 @@ Looking forward to connecting!
 
 Best,
 Rumiza Shaikh
-\"\"\"
+"""
 
         summary_path = f"outputs/{file_prefix}_summary.txt"
         email_path = f"outputs/{file_prefix}_email.txt"
@@ -176,3 +177,4 @@ if os.path.exists(feedback_path):
         st.markdown("---")
 else:
     st.info("No reviews yet — be the first to share feedback!")
+
