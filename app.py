@@ -1,22 +1,24 @@
-
 import streamlit as st
 import pandas as pd
 import os
 
+# ---------------- CONFIG ----------------
 st.set_page_config(page_title="InboxIQ", page_icon="📬")
 
-st.markdown("""
+st.markdown(\"\"\"
 <div style='background-color:#F6F8FA; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
     <h1 style='color: #1F77B4;'>📬 InboxIQ</h1>
     <p style='color: #555; font-size: 16px;'>
         Track tailored resumes, summarize JDs, and write recruiter emails – all with AI.
     </p>
 </div>
-""", unsafe_allow_html=True)
+\"\"\", unsafe_allow_html=True)
 
+# ---------------- INIT ----------------
 os.makedirs("outputs", exist_ok=True)
 os.makedirs("data", exist_ok=True)
 tracker_path = "outputs/application_tracker.csv"
+feedback_path = "outputs/user_feedback.csv"
 
 def load_tracker():
     if os.path.exists(tracker_path):
@@ -24,6 +26,7 @@ def load_tracker():
     else:
         return pd.DataFrame()
 
+# ---------------- FORM INPUTS ----------------
 st.subheader("📄 Upload Job Description & Resume")
 
 with st.form(key="input_form"):
@@ -33,6 +36,7 @@ with st.form(key="input_form"):
     job_title = st.text_input("Job Title")
     submit_button = st.form_submit_button(label="🧠 Generate Summary + Email")
 
+# ---------------- SUBMIT LOGIC ----------------
 if submit_button:
     if jd_file and resume_file and company_name and job_title:
         st.success("✅ All inputs received! Generating now...")
@@ -47,7 +51,7 @@ if submit_button:
         with open(jd_save_path, "w") as f:
             f.write(jd_text)
 
-        summary = f"""
+        summary = f\"\"\"
 ### 📝 JD Summary
 
 **1. Key Responsibilities**:
@@ -65,9 +69,9 @@ if submit_button:
 
 **4. Domain / Team**:
 - Gemini AI Assistant | Google Workspace
-"""
+\"\"\"
 
-        email = f"""
+        email = f\"\"\"
 Hi [Recruiter],
 
 I’m applying for the **{job_title}** role at **{company_name}**, and I believe it’s an incredible match with my background in AI-powered product design.
@@ -76,9 +80,9 @@ With 3+ years of experience building tools that leverage LLMs and personalizatio
 
 Looking forward to connecting!
 
-Best,  
+Best,
 Rumiza Shaikh
-"""
+\"\"\"
 
         summary_path = f"outputs/{file_prefix}_summary.txt"
         email_path = f"outputs/{file_prefix}_email.txt"
@@ -108,6 +112,7 @@ Rumiza Shaikh
         tracker_df.to_csv(tracker_path, index=False)
         st.success("✅ Tracker updated and files saved successfully!")
 
+# ---------------- DISPLAY TRACKER ----------------
 st.subheader("📊 Job Application Tracker")
 tracker_df = load_tracker()
 if not tracker_df.empty:
@@ -115,6 +120,7 @@ if not tracker_df.empty:
 else:
     st.info("No job applications tracked yet. Start by submitting one above!")
 
+# ---------------- STATUS DROPDOWN ----------------
 st.subheader("🟢 Update Job Status")
 if not tracker_df.empty:
     for index, row in tracker_df.iterrows():
@@ -132,3 +138,41 @@ if not tracker_df.empty:
                 tracker_df.at[index, "Status"] = new_status
                 st.success(f"✅ Updated: {row['Company']} – {row['Title']} → {new_status}")
     tracker_df.to_csv(tracker_path, index=False)
+
+# ---------------- USER REVIEWS SECTION ----------------
+st.subheader("⭐ Share Your Feedback")
+
+with st.form(key="feedback_form"):
+    reviewer_name = st.text_input("Your Name (Optional)")
+    user_role = st.selectbox("I am a...", ["Job Seeker", "Recruiter", "Other"])
+    rating = st.slider("How would you rate InboxIQ?", 1, 5, value=5)
+    comment = st.text_area("Leave a comment")
+    submit_feedback = st.form_submit_button("Submit Feedback")
+
+if submit_feedback:
+    feedback_df = pd.DataFrame([{
+        "Name": reviewer_name,
+        "Role": user_role,
+        "Rating": rating,
+        "Comment": comment
+    }])
+
+    if os.path.exists(feedback_path):
+        existing_df = pd.read_csv(feedback_path)
+        feedback_df = pd.concat([existing_df, feedback_df], ignore_index=True)
+
+    feedback_df.to_csv(feedback_path, index=False)
+    st.success("✅ Thank you for your feedback!")
+
+# ---------------- DISPLAY FEEDBACK ----------------
+st.subheader("💬 What Users Are Saying")
+
+if os.path.exists(feedback_path):
+    reviews_df = pd.read_csv(feedback_path)
+    for _, row in reviews_df.tail(5).iterrows():  # Show last 5 reviews
+        st.markdown(f"**A {row['Role'].lower()} says:**")
+        st.markdown(f"“{row['Comment']}”")
+        st.markdown(f"⭐ {row['Rating']}/5")
+        st.markdown("---")
+else:
+    st.info("No reviews yet — be the first to share feedback!")
