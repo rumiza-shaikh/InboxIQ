@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import os
+import requests
+from bs4 import BeautifulSoup
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="InboxIQ", page_icon="📬", layout="wide")
@@ -38,31 +40,49 @@ def load_tracker():
         return pd.DataFrame()
 
 # ---------------- FORM INPUTS ----------------
-st.subheader("📄 Upload Job Description & Resume")
+st.subheader("📄 Provide Job Description & Upload Resume")
 
 with st.form(key="input_form"):
     col1, col2 = st.columns(2)
     with col1:
-        jd_file = st.file_uploader("Upload Job Description (.txt only)", type=["txt"])
+        jd_input_method = st.radio("How would you like to provide the job description?", ["Paste Text", "Paste URL", "Upload .txt File"])
+        jd_text = ""
+        if jd_input_method == "Paste Text":
+            jd_text = st.text_area("Paste the full Job Description here")
+        elif jd_input_method == "Paste URL":
+            jd_url = st.text_input("Paste JD URL")
+            if jd_url:
+                try:
+                    response = requests.get(jd_url, timeout=5)
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    jd_text = soup.get_text()
+                    st.success("✅ Fetched JD from URL successfully!")
+                except Exception as e:
+                    st.error(f"❌ Failed to fetch JD from URL: {e}")
+        else:
+            jd_file = st.file_uploader("Upload Job Description (.txt only)", type=["txt"])
+            if jd_file:
+                jd_text = jd_file.read().decode("utf-8")
+
         company_name = st.text_input("Company Name")
+
     with col2:
         resume_file = st.file_uploader("Upload Resume", type=["pdf", "docx", "txt"])
         job_title = st.text_input("Job Title")
+        tone = st.selectbox("Tone for Email", ["Formal", "Friendly", "Bold"])
+        intent = st.selectbox("Email Intent", ["Cold outreach", "Follow-up", "Thank-you"])
 
-    tone = st.selectbox("Tone for Email", ["Formal", "Friendly", "Bold"])
-    intent = st.selectbox("Email Intent", ["Cold outreach", "Follow-up", "Thank-you"])
     submit_button = st.form_submit_button(label="🧠 Generate Summary + Email")
 
 # ---------------- SUBMIT LOGIC ----------------
 if submit_button:
-    if jd_file and resume_file and company_name and job_title:
+    if jd_text and resume_file and company_name and job_title:
         st.success("✅ All inputs received! Generating now...")
 
         resume_path = f"data/{resume_file.name}"
         with open(resume_path, "wb") as f:
             f.write(resume_file.read())
 
-        jd_text = jd_file.read().decode("utf-8")
         file_prefix = f"{company_name}_{job_title}".replace(" ", "_")
         jd_save_path = f"outputs/{file_prefix}_jd.txt"
         with open(jd_save_path, "w") as f:
