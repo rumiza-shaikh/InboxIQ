@@ -1,10 +1,20 @@
-
 import streamlit as st
 import pandas as pd
 import os
 
 # ---------------- CONFIG ----------------
-st.set_page_config(page_title="InboxIQ", page_icon="📬")
+st.set_page_config(page_title="InboxIQ", page_icon="📬", layout="wide")
+
+st.markdown("""
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+    .reportview-container .markdown-text-container {
+        font-family: 'Inter', sans-serif;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 st.markdown("""
 <div style='background-color:#F6F8FA; padding: 20px; border-radius: 10px; margin-bottom: 20px;'>
@@ -31,10 +41,16 @@ def load_tracker():
 st.subheader("📄 Upload Job Description & Resume")
 
 with st.form(key="input_form"):
-    jd_file = st.file_uploader("Upload Job Description (.txt only)", type=["txt"])
-    resume_file = st.file_uploader("Upload Resume", type=["pdf", "docx", "txt"])
-    company_name = st.text_input("Company Name")
-    job_title = st.text_input("Job Title")
+    col1, col2 = st.columns(2)
+    with col1:
+        jd_file = st.file_uploader("Upload Job Description (.txt only)", type=["txt"])
+        company_name = st.text_input("Company Name")
+    with col2:
+        resume_file = st.file_uploader("Upload Resume", type=["pdf", "docx", "txt"])
+        job_title = st.text_input("Job Title")
+
+    tone = st.selectbox("Tone for Email", ["Formal", "Friendly", "Bold"])
+    intent = st.selectbox("Email Intent", ["Cold outreach", "Follow-up", "Thank-you"])
     submit_button = st.form_submit_button(label="🧠 Generate Summary + Email")
 
 # ---------------- SUBMIT LOGIC ----------------
@@ -55,20 +71,20 @@ if submit_button:
         summary = f"""
 ### 📝 JD Summary
 
-**1. Key Responsibilities**:
+**Key Responsibilities**:
 - Define and build AI-driven product features
 - Collaborate with engineering, design, and research
 - Prioritize roadmap and ship at scale
 
-**2. Required Skills**:
+**Required Skills**:
 - Python, SQL, prompt engineering
 - Experience with LLM APIs, Streamlit
 
-**3. Ideal Candidate**:
+**Ideal Candidate**:
 - Product thinker with technical fluency
 - Passion for building consumer-grade AI tools
 
-**4. Domain / Team**:
+**Team / Domain**:
 - Gemini AI Assistant | Google Workspace
 """
 
@@ -81,7 +97,7 @@ With 3+ years of experience building tools that leverage LLMs and personalizatio
 
 Looking forward to connecting!
 
-Best,
+Best,  
 Rumiza Shaikh
 """
 
@@ -117,7 +133,7 @@ Rumiza Shaikh
 st.subheader("📊 Job Application Tracker")
 tracker_df = load_tracker()
 if not tracker_df.empty:
-    st.dataframe(tracker_df)
+    st.dataframe(tracker_df, use_container_width=True)
 else:
     st.info("No job applications tracked yet. Start by submitting one above!")
 
@@ -170,11 +186,10 @@ st.subheader("💬 What Users Are Saying")
 
 if os.path.exists(feedback_path):
     reviews_df = pd.read_csv(feedback_path)
-    for _, row in reviews_df.tail(5).iterrows():  # Show last 5 reviews
+    for _, row in reviews_df.tail(5).iterrows():
         st.markdown(f"**A {row['Role'].lower()} says:**")
         st.markdown(f"“{row['Comment']}”")
         st.markdown(f"⭐ {row['Rating']}/5")
         st.markdown("---")
 else:
     st.info("No reviews yet — be the first to share feedback!")
-
