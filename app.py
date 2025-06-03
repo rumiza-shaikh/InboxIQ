@@ -39,38 +39,39 @@ def load_tracker():
     else:
         return pd.DataFrame()
 
-# ---------------- FORM INPUTS ----------------
+# ---------------- JD INPUT METHOD ----------------
 st.subheader("📄 Provide Job Description & Upload Resume")
+jd_input_method = st.radio("How would you like to provide the job description?", ["Paste Text", "Paste URL", "Upload .txt File"])
+jd_text = ""
 
+if jd_input_method == "Paste Text":
+    jd_text = st.text_area("Paste the full Job Description here")
+elif jd_input_method == "Paste URL":
+    jd_url = st.text_input("Paste JD URL")
+    if jd_url:
+        try:
+            response = requests.get(jd_url, timeout=5)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            jd_text = soup.get_text()
+            st.success("✅ Fetched JD from URL successfully!")
+        except Exception as e:
+            st.error(f"❌ Failed to fetch JD from URL: {e}")
+elif jd_input_method == "Upload .txt File":
+    jd_file = st.file_uploader("Upload Job Description (.txt only)", type=["txt"])
+    if jd_file:
+        jd_text = jd_file.read().decode("utf-8")
+
+# ---------------- FORM INPUTS ----------------
 with st.form(key="input_form"):
     col1, col2 = st.columns(2)
     with col1:
-        jd_input_method = st.radio("How would you like to provide the job description?", ["Paste Text", "Paste URL", "Upload .txt File"])
-        jd_text = ""
-        if jd_input_method == "Paste Text":
-            jd_text = st.text_area("Paste the full Job Description here")
-        elif jd_input_method == "Paste URL":
-            jd_url = st.text_input("Paste JD URL")
-            if jd_url:
-                try:
-                    response = requests.get(jd_url, timeout=5)
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    jd_text = soup.get_text()
-                    st.success("✅ Fetched JD from URL successfully!")
-                except Exception as e:
-                    st.error(f"❌ Failed to fetch JD from URL: {e}")
-        else:
-            jd_file = st.file_uploader("Upload Job Description (.txt only)", type=["txt"])
-            if jd_file:
-                jd_text = jd_file.read().decode("utf-8")
-
         company_name = st.text_input("Company Name")
-
     with col2:
-        resume_file = st.file_uploader("Upload Resume", type=["pdf", "docx", "txt"])
         job_title = st.text_input("Job Title")
-        tone = st.selectbox("Tone for Email", ["Formal", "Friendly", "Bold"])
-        intent = st.selectbox("Email Intent", ["Cold outreach", "Follow-up", "Thank-you"])
+
+    resume_file = st.file_uploader("Upload Resume", type=["pdf", "docx", "txt"])
+    tone = st.selectbox("Tone for Email", ["Formal", "Friendly", "Bold"])
+    intent = st.selectbox("Email Intent", ["Cold outreach", "Follow-up", "Thank-you"])
 
     submit_button = st.form_submit_button(label="🧠 Generate Summary + Email")
 
@@ -178,7 +179,6 @@ if not tracker_df.empty:
 
 # ---------------- USER REVIEWS SECTION ----------------
 st.subheader("⭐ Share Your Feedback")
-
 with st.form(key="feedback_form"):
     reviewer_name = st.text_input("Your Name (Optional)")
     user_role = st.selectbox("I am a...", ["Job Seeker", "Recruiter", "Other"])
@@ -203,7 +203,6 @@ if submit_feedback:
 
 # ---------------- DISPLAY FEEDBACK ----------------
 st.subheader("💬 What Users Are Saying")
-
 if os.path.exists(feedback_path):
     reviews_df = pd.read_csv(feedback_path)
     for _, row in reviews_df.tail(5).iterrows():
