@@ -69,11 +69,13 @@ def generate_summary(prompt):
 
 def get_cached_summary(prompt):
     if prompt in summary_cache:
-        return summary_cache[prompt]
+        return summary_cache[prompt]  # ⏩ Instant return if cached
     else:
+        time.sleep(0.12)  # Delay only when NOT cached
         result = generate_summary(prompt)
         summary_cache[prompt] = result
         return result
+
 
 # ---------------- JD INPUT METHOD ----------------
 st.subheader("📄 Provide Job Description & Upload Resume")
