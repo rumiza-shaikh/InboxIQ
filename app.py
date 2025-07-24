@@ -4,6 +4,7 @@ import os
 import requests
 import time
 from bs4 import BeautifulSoup
+from cachetools import TTLCache
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="InboxIQ", page_icon="📬", layout="wide")
@@ -40,7 +41,9 @@ def load_tracker():
     else:
         return pd.DataFrame()
 
-# ---------------- FAKE SUMMARY GENERATOR (NO CACHE) ----------------
+# ---------------- SMART SUMMARY GENERATOR WITH CACHE ----------------
+summary_cache = TTLCache(maxsize=128, ttl=300)  # 5-minute cache
+
 def extract_focus(text):
     text = text.lower()
     if "search" in text:
@@ -54,8 +57,8 @@ def extract_focus(text):
     else:
         return "Product Strategy & Execution"
 
-def get_cached_summary(prompt):
-    time.sleep(0.12)  # Simulate backend delay (no cache)
+def generate_summary(prompt):
+    time.sleep(0.12)  # Simulated backend delay
     role_focus = extract_focus(prompt)
     return f"""📝 Summary:
 **Role Focus**: {role_focus}  
@@ -63,6 +66,14 @@ def get_cached_summary(prompt):
 **What You’ll Do**: Own roadmap, A/B test new features, drive user engagement  
 **Why It’s Cool**: High-impact role at the core of user experience
 """
+
+def get_cached_summary(prompt):
+    if prompt in summary_cache:
+        return summary_cache[prompt]
+    else:
+        result = generate_summary(prompt)
+        summary_cache[prompt] = result
+        return result
 
 # ---------------- JD INPUT METHOD ----------------
 st.subheader("📄 Provide Job Description & Upload Resume")
@@ -118,7 +129,7 @@ if submit_button:
             start = time.time()
             summary = get_cached_summary(jd_text)
             latency = (time.time() - start) * 1000  # ms
-            time.sleep(1.2)  # Simulate UI lag (not part of measured latency)
+            time.sleep(0.3)  # Minimal UI delay for feel (optional)
 
         email = f"""
 Hi [Recruiter],
@@ -142,7 +153,7 @@ Rumiza Shaikh
 
         st.subheader("🧠 JD Summary")
         st.text_area("LLM-generated Job Description Summary:", summary, height=200)
-        st.markdown(f"⚠️ Took **{latency:.2f} ms** (no cache)")
+        st.markdown(f"⚡ Took **{latency:.2f} ms** (cached if repeated!)")
         st.download_button("⬇️ Download Summary", data=open(summary_path, "rb"), file_name=os.path.basename(summary_path), mime="text/plain")
 
         st.subheader("📬 Recruiter Email")
@@ -185,7 +196,7 @@ if not tracker_df.empty:
                 key=f"status_{index}"
             )
             if new_status != row["Status"]:
-                tracker_df.at[index, "Status"] = new_status
+                tracker_df.at(index, "Status"] = new_status
                 st.success(f"✅ Updated: {row['Company']} – {row['Title']} → {new_status}")
     tracker_df.to_csv(tracker_path, index=False)
 
