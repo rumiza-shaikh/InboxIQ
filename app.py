@@ -85,8 +85,8 @@ if submit_button:
         start_time = time.time()
 
         # Dummy CPU load
-        for _ in range(3):
-            [x**2 for x in range(10000)]
+        #for _ in range(3):
+        #    [x**2 for x in range(10000)]
 
         # Artificial delay
         time.sleep(1.2)
