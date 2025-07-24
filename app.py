@@ -42,7 +42,7 @@ def load_tracker():
 
 # ---------------- SIMULATED SUMMARY WITHOUT CACHE ----------------
 def get_cached_summary(prompt):
-    time.sleep(0.12)  # Simulate 120ms delay (NO cache)
+    time.sleep(0.12)  # Simulated backend delay (no cache)
     return "📝 Summary: " + prompt[:60].strip().replace("\n", " ") + "..."
 
 # ---------------- JD INPUT METHOD ----------------
@@ -95,9 +95,12 @@ if submit_button:
         with open(jd_save_path, "w") as f:
             f.write(jd_text)
 
-        start = time.time()
-        summary = get_cached_summary(jd_text)
-        latency = (time.time() - start) * 1000  # milliseconds
+        # ⏳ Spinner and Latency Simulation
+        with st.spinner("Generating AI summary..."):
+            start = time.time()
+            summary = get_cached_summary(jd_text)
+            time.sleep(1.2)  # Artificial UI delay for visible lag
+            latency = (time.time() - start) * 1000  # milliseconds
 
         email = f"""
 Hi [Recruiter],
