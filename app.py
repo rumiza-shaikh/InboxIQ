@@ -196,7 +196,7 @@ if not tracker_df.empty:
                 key=f"status_{index}"
             )
             if new_status != row["Status"]:
-                tracker_df.at(index, "Status"] = new_status
+                tracker_df.at[index, "Status"] = new_status
                 st.success(f"✅ Updated: {row['Company']} – {row['Title']} → {new_status}")
     tracker_df.to_csv(tracker_path, index=False)
 
