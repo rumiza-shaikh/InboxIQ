@@ -40,10 +40,29 @@ def load_tracker():
     else:
         return pd.DataFrame()
 
-# ---------------- SIMULATED SUMMARY WITHOUT CACHE ----------------
+# ---------------- FAKE SUMMARY GENERATOR (NO CACHE) ----------------
+def extract_focus(text):
+    text = text.lower()
+    if "search" in text:
+        return "Search Optimization & Ranking"
+    elif "personalization" in text:
+        return "User Personalization & Recommendations"
+    elif "analytics" in text:
+        return "Data Analytics & Experimentation"
+    elif "growth" in text:
+        return "Growth & Activation"
+    else:
+        return "Product Strategy & Execution"
+
 def get_cached_summary(prompt):
-    time.sleep(0.12)  # Simulated backend delay (no cache)
-    return "📝 Summary: " + prompt[:60].strip().replace("\n", " ") + "..."
+    time.sleep(0.12)  # Simulate backend delay (no cache)
+    role_focus = extract_focus(prompt)
+    return f"""📝 Summary:
+**Role Focus**: {role_focus}  
+**Key Skills**: AI, personalization, experimentation, analytics  
+**What You’ll Do**: Own roadmap, A/B test new features, drive user engagement  
+**Why It’s Cool**: High-impact role at the core of user experience
+"""
 
 # ---------------- JD INPUT METHOD ----------------
 st.subheader("📄 Provide Job Description & Upload Resume")
@@ -95,12 +114,11 @@ if submit_button:
         with open(jd_save_path, "w") as f:
             f.write(jd_text)
 
-        # ⏳ Spinner and Latency Simulation
         with st.spinner("Generating AI summary..."):
             start = time.time()
             summary = get_cached_summary(jd_text)
-            time.sleep(1.2)  # Artificial UI delay for visible lag
-            latency = (time.time() - start) * 1000  # milliseconds
+            latency = (time.time() - start) * 1000  # ms
+            time.sleep(1.2)  # Simulate UI lag (not part of measured latency)
 
         email = f"""
 Hi [Recruiter],
