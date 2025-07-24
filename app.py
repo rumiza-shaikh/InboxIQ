@@ -79,19 +79,11 @@ with st.form(key="input_form"):
 # ---------------- SUBMIT LOGIC ----------------
 if submit_button:
     if jd_text and resume_file and company_name and job_title:
-        st.success("✅ All inputs received! Generating now...")
+        with st.spinner("Generating your content..."):
+            start_time = time.time()
+            time.sleep(1.2)  # Simulated delay
+            elapsed_ms = round((time.time() - start_time) * 1000, 2)
 
-        # ⏱️ Simulate latency (BEFORE version)
-        start_time = time.time()
-
-        # Dummy CPU load
-        #for _ in range(3):
-        #    [x**2 for x in range(10000)]
-
-        # Artificial delay
-        time.sleep(1.2)
-
-        elapsed_ms = round((time.time() - start_time) * 1000, 2)
         st.warning(f"⚠️ Took {elapsed_ms} ms (no cache)")
 
         resume_path = f"data/{resume_file.name}"
@@ -105,10 +97,10 @@ if submit_button:
 
         summary = f"""
 **Summary**:
-**Role Focus**: User Personalization & Recommendation
-**Key Skills**: AI, personalization, experimentation, data pipelines
-**What You’ll Do**: Own roadmap, A/B test new features, launch iteratively
-**Why It’s Cool**: High-impact role at the core of user experience
+**Role Focus**: User Personalization & Recommendation  
+**Key Skills**: AI, personalization, experimentation, data pipelines  
+**What You’ll Do**: Own roadmap, A/B test new features, launch iteratively  
+**Why It’s Cool**: High-impact role at the core of user experience  
 """
 
         email = f"""
