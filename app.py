@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import requests
+import time
 from bs4 import BeautifulSoup
 
 # ---------------- CONFIG ----------------
@@ -38,6 +39,11 @@ def load_tracker():
         return pd.read_csv(tracker_path)
     else:
         return pd.DataFrame()
+
+# ---------------- SIMULATED SUMMARY WITHOUT CACHE ----------------
+def get_cached_summary(prompt):
+    time.sleep(0.12)  # Simulate 120ms delay (NO cache)
+    return "📝 Summary: " + prompt[:60].strip().replace("\n", " ") + "..."
 
 # ---------------- JD INPUT METHOD ----------------
 st.subheader("📄 Provide Job Description & Upload Resume")
@@ -89,25 +95,9 @@ if submit_button:
         with open(jd_save_path, "w") as f:
             f.write(jd_text)
 
-        summary = f"""
-### 📝 JD Summary
-
-**Key Responsibilities**:
-- Define and build AI-driven product features
-- Collaborate with engineering, design, and research
-- Prioritize roadmap and ship at scale
-
-**Required Skills**:
-- Python, SQL, prompt engineering
-- Experience with LLM APIs, Streamlit
-
-**Ideal Candidate**:
-- Product thinker with technical fluency
-- Passion for building consumer-grade AI tools
-
-**Team / Domain**:
-- Gemini AI Assistant | Google Workspace
-"""
+        start = time.time()
+        summary = get_cached_summary(jd_text)
+        latency = (time.time() - start) * 1000  # milliseconds
 
         email = f"""
 Hi [Recruiter],
@@ -131,6 +121,7 @@ Rumiza Shaikh
 
         st.subheader("🧠 JD Summary")
         st.text_area("LLM-generated Job Description Summary:", summary, height=200)
+        st.markdown(f"⚠️ Took **{latency:.2f} ms** (no cache)")
         st.download_button("⬇️ Download Summary", data=open(summary_path, "rb"), file_name=os.path.basename(summary_path), mime="text/plain")
 
         st.subheader("📬 Recruiter Email")
