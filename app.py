@@ -1,10 +1,9 @@
 import streamlit as st
 import pandas as pd
 import os
-import requests
 import time
+import requests
 from bs4 import BeautifulSoup
-from cachetools import TTLCache
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="InboxIQ", page_icon="📬", layout="wide")
@@ -40,42 +39,6 @@ def load_tracker():
         return pd.read_csv(tracker_path)
     else:
         return pd.DataFrame()
-
-# ---------------- SMART SUMMARY GENERATOR WITH CACHE ----------------
-summary_cache = TTLCache(maxsize=128, ttl=300)  # 5-minute cache
-
-def extract_focus(text):
-    text = text.lower()
-    if "search" in text:
-        return "Search Optimization & Ranking"
-    elif "personalization" in text:
-        return "User Personalization & Recommendations"
-    elif "analytics" in text:
-        return "Data Analytics & Experimentation"
-    elif "growth" in text:
-        return "Growth & Activation"
-    else:
-        return "Product Strategy & Execution"
-
-def generate_summary(prompt):
-    time.sleep(0.12)  # Simulated backend delay
-    role_focus = extract_focus(prompt)
-    return f"""📝 Summary:
-**Role Focus**: {role_focus}  
-**Key Skills**: AI, personalization, experimentation, analytics  
-**What You’ll Do**: Own roadmap, A/B test new features, drive user engagement  
-**Why It’s Cool**: High-impact role at the core of user experience
-"""
-
-def get_cached_summary(prompt):
-    if prompt in summary_cache:
-        return summary_cache[prompt]  # ⏩ Instant return if cached
-    else:
-        time.sleep(0.12)  # Delay only when NOT cached
-        result = generate_summary(prompt)
-        summary_cache[prompt] = result
-        return result
-
 
 # ---------------- JD INPUT METHOD ----------------
 st.subheader("📄 Provide Job Description & Upload Resume")
@@ -118,6 +81,19 @@ if submit_button:
     if jd_text and resume_file and company_name and job_title:
         st.success("✅ All inputs received! Generating now...")
 
+        # ⏱️ Simulate latency (BEFORE version)
+        start_time = time.time()
+
+        # Dummy CPU load
+        for _ in range(3):
+            [x**2 for x in range(10000)]
+
+        # Artificial delay
+        time.sleep(1.2)
+
+        elapsed_ms = round((time.time() - start_time) * 1000, 2)
+        st.warning(f"⚠️ Took {elapsed_ms} ms (no cache)")
+
         resume_path = f"data/{resume_file.name}"
         with open(resume_path, "wb") as f:
             f.write(resume_file.read())
@@ -127,11 +103,13 @@ if submit_button:
         with open(jd_save_path, "w") as f:
             f.write(jd_text)
 
-        with st.spinner("Generating AI summary..."):
-            start = time.time()
-            summary = get_cached_summary(jd_text)
-            latency = (time.time() - start) * 1000  # ms
-            time.sleep(0.3)  # Minimal UI delay for feel (optional)
+        summary = f"""
+**Summary**:
+**Role Focus**: User Personalization & Recommendation
+**Key Skills**: AI, personalization, experimentation, data pipelines
+**What You’ll Do**: Own roadmap, A/B test new features, launch iteratively
+**Why It’s Cool**: High-impact role at the core of user experience
+"""
 
         email = f"""
 Hi [Recruiter],
@@ -155,7 +133,6 @@ Rumiza Shaikh
 
         st.subheader("🧠 JD Summary")
         st.text_area("LLM-generated Job Description Summary:", summary, height=200)
-        st.markdown(f"⚡ Took **{latency:.2f} ms** (cached if repeated!)")
         st.download_button("⬇️ Download Summary", data=open(summary_path, "rb"), file_name=os.path.basename(summary_path), mime="text/plain")
 
         st.subheader("📬 Recruiter Email")
